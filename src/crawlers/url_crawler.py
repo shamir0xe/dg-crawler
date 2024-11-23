@@ -61,7 +61,8 @@ class UrlCrawler(BaseCrawler):
                     time.sleep(0.1 + 0.1 * random())
 
                 # DEBUG:
-                # break
+                if Config.read_env("debug"):
+                    break
 
             i = 1
             while True:

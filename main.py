@@ -1,14 +1,10 @@
 import logging
-import threading
-from typing import List
-from ulid import ULID
+from concurrent.futures import ThreadPoolExecutor
 from random import shuffle
+from src.orchestrators.chunk_products import ChunkProducts
 from src.helpers.config import Config
 from src.orchestrators.crawl_all_products import CrawlAllProducts
-from src.crawlers.crawl_images import CrawlImages
-from src.orchestrators.check_image_possibilities import CheckImagePossibilities
-from src.orchestrators.save_image import SaveImage
-from pylib_0xe.string.hash_generator import HashGenerator
+from src.orchestrators.chunk_image_fetcher import ChunkImageFetcher
 
 
 logging.basicConfig(
@@ -20,21 +16,6 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def run_chunk(products: List, instance: int):
-    LOGGER.info("Run chunks")
-    LOGGER.info(products)
-    for product in products:
-        CrawlImages(product=product).crawl(instance)
-        count = 0
-        for img in product.images:
-            possible = CheckImagePossibilities(image=img).check()
-            if possible:
-                SaveImage(image=img).save(
-                    name=f"{ULID().generate() + HashGenerator.generate()}#{count+1:02d}"
-                )
-                count += 1
-
-
 def main():
     """
     Consists of 3 stages:
@@ -43,40 +24,21 @@ def main():
         3) Run YOLO on each image, and tag it if there contains
         an suspicious text-box
     """
+    # 1
     products = CrawlAllProducts().crawl()
     shuffle(products)
-    thread_count = int(Config.read("main.thread_count"))
-    batch_size = (len(products) + 1) // thread_count
-    product_chunks = []
-    cur_chunk = []
-    index = 0
-    for i, product in enumerate(products):
-        cur_chunk += [product]
-        if i // batch_size != index:
-            product_chunks.append(cur_chunk)
-            cur_chunk = []
-            index = i // batch_size
-            LOGGER.info(f"#{i} chunk#{index}")
-    if cur_chunk:
-        product_chunks.append(cur_chunk)
+    thread_count = Config.read("main.thread_count")
+    product_chunks = ChunkProducts.chunk(products=products, chunk_count=thread_count)
 
-    LOGGER.info("chunks:")
-    LOGGER.info(product_chunks)
-
-    thread_pool = []
-    for i in range(len(product_chunks)):
-        thread = threading.Thread(
-            target=run_chunk,
-            args=(
-                product_chunks[i],
-                i + 1,
-            ),
-        )
-        thread.start()
-        thread_pool += [thread]
-
-    for thread in thread_pool:
-        thread.join()
+    # 2
+    with ThreadPoolExecutor(max_workers=thread_count) as executor:
+        futures = []
+        for i in range(len(product_chunks)):
+            futures += [
+                executor.submit(
+                    ChunkImageFetcher.run, product_chunks[i], (i % thread_count) + 1
+                )
+            ]
 
 
 if __name__ == "__main__":
