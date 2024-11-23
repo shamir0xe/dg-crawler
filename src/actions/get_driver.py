@@ -14,6 +14,7 @@ class GetDriver:
         user_agent = GetAgent.get()
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("user-agent={}".format(user_agent))
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--window-size=1920x1080")
         return webdriver.Chrome(
