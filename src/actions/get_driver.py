@@ -10,7 +10,7 @@ from src.actions.get_agent import GetAgent
 class GetDriver:
     user_agent: str
 
-    def get(self) -> WebDriver:
+    def get(self, i: int) -> WebDriver:
         user_agent = GetAgent.get()
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("user-agent={}".format(user_agent))
@@ -18,6 +18,6 @@ class GetDriver:
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--window-size=1920x1080")
         return webdriver.Chrome(
-            service=Service(executable_path="/usr/local/bin/chromedriver"),
+            service=Service(executable_path=f"/usr/local/bin/chromedriver#{i}"),
             options=chrome_options,
         )

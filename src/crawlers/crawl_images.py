@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 class CrawlImages(BaseCrawler):
     product: Product
 
-    def crawl(self) -> List[Image.Image]:
+    def crawl(self, instance: int) -> List[Image.Image]:
         url = self.product.url
         if url[-1] != "/":
             url += "/"
@@ -34,7 +34,7 @@ class CrawlImages(BaseCrawler):
 
         user_agent = GetAgent.get()
         LOGGER.info(f"user-agent: {user_agent}")
-        driver = GetDriver(user_agent).get()
+        driver = GetDriver(user_agent).get(instance)
         LOGGER.info(f"going to crawl {url}")
         driver.get(url)
         debug_begin = time.time()

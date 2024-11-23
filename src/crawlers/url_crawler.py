@@ -24,12 +24,12 @@ LOGGER = logging.getLogger(__name__)
 class UrlCrawler(BaseCrawler):
     url: str
 
-    def crawl(self) -> List[Product]:
+    def crawl(self, instance: int) -> List[Product]:
         wrappers: List[Product] = []
         try:
             user_agent = GetAgent.get()
             LOGGER.info(f"user-agent: {user_agent}")
-            driver = GetDriver(user_agent).get()
+            driver = GetDriver(user_agent).get(instance)
             LOGGER.info(f"going to crawl {self.url}")
             driver.get(self.url)
             debug_begin = time.time()

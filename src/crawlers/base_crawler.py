@@ -6,5 +6,5 @@ T = TypeVar("T")
 
 class BaseCrawler(ABC, Generic[T]):
     @abstractmethod
-    def crawl(self) -> T:
+    def crawl(self, *args, **kwargs) -> T:
         pass
