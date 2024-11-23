@@ -1,6 +1,6 @@
 {
   "url": "https://www.digikala.com/search/personal-appliance",
   "output_dir": "outputs/{}.{}",
-  "loading_timelimit": 66,
-  "thread_count": 5
+  "loading_timelimit": 99,
+  "thread_count": 4
 }

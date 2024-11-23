@@ -33,9 +33,7 @@ class UrlCrawler(BaseCrawler):
             LOGGER.info(f"going to crawl {self.url}")
             driver.get(self.url)
             debug_begin = time.time()
-            element = WebDriverWait(
-                driver, Config.read("main.loading_timelimit")
-            ).until(
+            WebDriverWait(driver, Config.read("main.loading_timelimit")).until(
                 EC.presence_of_all_elements_located(
                     (
                         By.XPATH,
