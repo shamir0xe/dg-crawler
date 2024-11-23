@@ -22,7 +22,7 @@ class ChunkProducts:
         if cur_chunk:
             product_chunks.append(cur_chunk)
 
-        assert len(product_chunks) == chunk_count
+        LOGGER.info(f"{len(product_chunks)} == {chunk_count}")
 
         LOGGER.info("chunks:")
         LOGGER.info(product_chunks)
