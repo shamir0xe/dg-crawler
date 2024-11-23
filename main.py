@@ -1,4 +1,5 @@
 import logging
+from ulid import ULID
 from src.models.product import Product
 from src.orchestrators.crawl_all_products import CrawlAllProducts
 from src.crawlers.crawl_images import CrawlImages
@@ -40,15 +41,14 @@ def main():
     #     )
     # ]
 
+    ulid = ULID()
     for product in products:
         CrawlImages(product=product).crawl()
         count = 0
         for img in product.images:
             possible = CheckImagePossibilities(image=img).check()
             if possible:
-                SaveImage(image=img).save(
-                    name=f"{HashGenerator.generate(10)}#{count+1:02d}"
-                )
+                SaveImage(image=img).save(name=f"{ulid.generate()}#{count+1:02d}")
                 count += 1
 
 
