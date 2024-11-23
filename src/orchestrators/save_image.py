@@ -10,5 +10,6 @@ class SaveImage:
     image: Image
 
     def save(self, name: str) -> None:
-        output_dir = Config.read("output_dir")
+        output_dir = Config.read("main.output_dir")
         self.image.save(output_dir.format(name, ".jpg"))
+        self.image.close()

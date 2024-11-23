@@ -1,8 +1,11 @@
+from dataclasses import dataclass
 from typing import List
+from PIL.Image import Image
 from pydantic import BaseModel
 
 
-class Product(BaseModel):
+@dataclass
+class Product:
     name: str
     url: str
-    images: List[str]
+    images: List[Image]

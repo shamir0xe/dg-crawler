@@ -16,6 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -23,7 +24,8 @@ LOGGER = logging.getLogger(__name__)
 class UrlCrawler(BaseCrawler):
     url: str
 
-    def crawl(self) -> List[str]:
+    def crawl(self) -> List[Product]:
+        wrappers: List[Product] = []
         try:
             user_agent = GetAgent.get()
             LOGGER.info(f"user-agent: {user_agent}")
@@ -63,7 +65,6 @@ class UrlCrawler(BaseCrawler):
                 # DEBUG:
                 # break
 
-            wrappers = []
             i = 1
             while True:
                 try:
@@ -82,7 +83,7 @@ class UrlCrawler(BaseCrawler):
         except Exception:
             traceback.print_exc()
             LOGGER.info("whAT")
-        return []
+        return wrappers
 
     def _get_info(self, index: int, driver: WebDriver) -> Tuple[str, str]:
         xpath = f"//div[@id='ProductListPagesWrapper']//div[{index}]//a[1]"

@@ -10,6 +10,6 @@ LOGGER = logging.getLogger(__name__)
 
 class CrawlAllProducts(BaseCrawler):
     def crawl(self) -> List[Product]:
-        urls = UrlCrawler(Config.read("main.url")).crawl()
-        LOGGER.info(urls)
-        return []
+        products = UrlCrawler(Config.read("main.url")).crawl()
+        LOGGER.info(products)
+        return products
