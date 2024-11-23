@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import logging
 import io
-import traceback
 import requests
 import time
 from PIL import Image
@@ -43,7 +42,7 @@ class CrawlImages(BaseCrawler):
             EC.presence_of_all_elements_located(
                 (
                     By.XPATH,
-                    "//div[@id='modal-root']//div[1]//picture[1]/img[1]",
+                    "//div[@id='modal-root']//div[1]//img[1]",
                 )
             )
         )
@@ -60,7 +59,7 @@ class CrawlImages(BaseCrawler):
         return self.product.images
 
     def _get_image(self, index: int, driver: WebDriver) -> Image.Image:
-        xpath = f"//div[@id='modal-root']//div[{index}]//picture[1]/img[1]"
+        xpath = f"//div[@id='modal-root']//div[{index}]//img[1]"
         element = driver.find_element(
             By.XPATH,
             xpath,

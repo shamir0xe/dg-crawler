@@ -1,5 +1,6 @@
 {
-  "url": "https://www.digikala.com/search/category-book/?sort=29",
+  "url": "https://www.digikala.com/search/personal-appliance",
   "output_dir": "outputs/{}.{}",
-  "loading_timelimit": 30
+  "loading_timelimit": 66,
+  "thread_count": 10
 }
