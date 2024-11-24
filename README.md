@@ -12,7 +12,9 @@
     ```
     Modify the content of env as needed.
     
-    Note: `executable_path` should follow the specified format and contains **#thread_cnt** number of chromedrivers: <br>chromedriver#1, chromedriver#2, ...
+    Note: `executable_path` should follow the specified format and contains **#thread_cnt** number of chromedrivers:
+    <br>chromedriver#1, chromedriver#2, ...
+    <br>Read [this](https://googlechromelabs.github.io/chrome-for-testing/) for installing chromedriver.
 
 ## Run
 In order to run the program:
