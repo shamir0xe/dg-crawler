@@ -8,7 +8,6 @@ from typing import List
 
 from selenium.webdriver.chrome.webdriver import WebDriver
 from src.helpers.config import Config
-from src.actions.get_agent import GetAgent
 from src.actions.get_driver import GetDriver
 from src.models.product import Product
 from src.crawlers.base_crawler import BaseCrawler
@@ -39,34 +38,36 @@ class CrawlImages(BaseCrawler):
             EC.presence_of_all_elements_located(
                 (
                     By.XPATH,
-                    "//div[@id='modal-root']//div[1]//img[1]",
+                    "//div[@id='modal-root']//img[1]",
                 )
             )
         )
         time.sleep(3)
         LOGGER.info(f"elapsed time: {time.time() - debug_begin}s")
 
-        for index in range(1, 100):
-            try:
-                image = self._get_image(index, driver)
-                self.product.images += [image]
-            except Exception:
-                # traceback.print_exc()
-                break
+        try:
+            images = self._get_image(driver)
+            self.product.images += images
+        except Exception:
+            LOGGER.info("End.")
         return self.product.images
 
-    def _get_image(self, index: int, driver: WebDriver) -> Image.Image:
-        xpath = f"//div[@id='modal-root']//div[{index}]//img[1]"
-        element = driver.find_element(
+    def _get_image(self, driver: WebDriver) -> List[Image.Image]:
+        xpath = "//div[@id='modal-root']//img[1]"
+        elements = driver.find_elements(
             By.XPATH,
             xpath,
         )
-        url = element.get_attribute("src")
-        if not url:
-            url = ""
-        LOGGER.info(f"source of the image: {url}")
+        images = []
+        for element in elements:
+            url = element.get_attribute("src")
+            if not url:
+                url = ""
+            LOGGER.info(f"source of the image: {url}")
 
-        r = requests.get(url, stream=True)
-        if r.status_code == 200:
-            return Image.open(io.BytesIO(r.content))
-        raise Exception("END")
+            r = requests.get(url, stream=True)
+            if r.status_code == 200:
+                images += [Image.open(io.BytesIO(r.content))]
+        if not images:
+            raise Exception("END")
+        return images
