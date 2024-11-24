@@ -31,10 +31,7 @@ class CrawlImages(BaseCrawler):
         if url[-1] != "/":
             url += "/"
         url += "#gallery"
-
-        user_agent = GetAgent.get()
-        LOGGER.info(f"user-agent: {user_agent}")
-        driver = GetDriver(user_agent).get(instance)
+        driver = GetDriver.get(instance)
         LOGGER.info(f"going to crawl {url}")
         driver.get(url)
         debug_begin = time.time()

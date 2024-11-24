@@ -27,9 +27,7 @@ class UrlCrawler(BaseCrawler):
     def crawl(self, instance: int) -> List[Product]:
         wrappers: List[Product] = []
         try:
-            user_agent = GetAgent.get()
-            LOGGER.info(f"user-agent: {user_agent}")
-            driver = GetDriver(user_agent).get(instance)
+            driver = GetDriver.get(instance)
             LOGGER.info(f"going to crawl {self.url}")
             driver.get(self.url)
             debug_begin = time.time()
@@ -41,12 +39,14 @@ class UrlCrawler(BaseCrawler):
                     )
                 )
             )
-            time.sleep(3)
+            time.sleep(5)
             LOGGER.info(f"elapsed time: {time.time() - debug_begin}s")
 
             driver.execute_script("window.scrollTo(0, 0);")
             self.current_scroll = 0
             self.scroll_step = 100  # Number of pixels to scroll per step
+
+            alpha, base = Config.read_env("times.alpha"), Config.read_env("times.base")
 
             loop = True
             while loop:
@@ -58,7 +58,9 @@ class UrlCrawler(BaseCrawler):
                 while self.current_scroll < scroll_height:
                     loop = True
                     self._step_scroll(driver)
-                    time.sleep(0.1 + 0.1 * random())
+                    time.sleep(alpha + alpha * random())
+
+                time.sleep(base)
 
                 # DEBUG:
                 if Config.read_env("debug"):
@@ -73,12 +75,11 @@ class UrlCrawler(BaseCrawler):
                     i += 1
                 except Exception:
                     LOGGER.info("we've reached the end of it")
-                    traceback.print_exc()
                     break
 
             LOGGER.info(f"length of wrappers: {len(wrappers)}")
             LOGGER.info("Done!")
-            time.sleep(5)
+            # time.sleep(5)
         except Exception:
             traceback.print_exc()
             LOGGER.info("whAT")

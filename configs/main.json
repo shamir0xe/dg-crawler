@@ -1,6 +1,5 @@
 {
-  "url": "https://www.digikala.com/search/category-game-and-fun/",
   "output_dir": "outputs/{}.{}",
   "loading_timelimit": 99,
-  "thread_count": 6
+  "urls_path": "outputs"
 }
