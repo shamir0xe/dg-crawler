@@ -4,6 +4,7 @@ from functools import lru_cache
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
+from src.helpers.config import Config
 from src.actions.get_agent import GetAgent
 
 
@@ -16,10 +17,12 @@ class GetDriver:
         user_agent = GetAgent.get()
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("user-agent={}".format(user_agent))
-        # chrome_options.add_argument("--headless=new")
+        if Config.read_env("headless"):
+            chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--window-size=1920x1080")
+        exec_path = Config.read_env("executable_path").format(i)
         return webdriver.Chrome(
-            service=Service(executable_path=f"/usr/local/bin/chromedriver#{i}"),
+            service=Service(executable_path=exec_path),
             options=chrome_options,
         )
