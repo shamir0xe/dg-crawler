@@ -8,14 +8,13 @@ from typing import List, Optional
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
+from src.actions.go_to_url import GoToUrl
 from src.actions.get_agent import GetAgent
 from src.helpers.config import Config
 from src.actions.get_driver import GetDriver
 from src.models.product import Product
 from src.crawlers.base_crawler import BaseCrawler
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 
 LOGGER = logging.getLogger(__name__)
@@ -35,13 +34,17 @@ class CrawlImages(BaseCrawler):
             url += "/"
         url += "#gallery"
         driver = GetDriver.get(instance)
-        # LOGGER.info(f"going to crawl {url}")
-        driver.get(url)
-        debug_begin = time.time()
+
+        try:
+            driver.get(url)
+        except Exception:
+            LOGGER.info(f"[{self.instance}] Cannot fetch the URL")
+            return self.product.images
+
         if not self._wait(driver):
-            LOGGER.info("Empty IMGS")
-            return []
-        # LOGGER.info(f"elapsed time: {time.time() - debug_begin}s")
+            LOGGER.info(f"[{self.instance}] Empty IMGS")
+            return self.product.images
+
         try:
             images = self._get_image(driver)
             self.product.images += images
@@ -64,7 +67,6 @@ class CrawlImages(BaseCrawler):
                 pass
             if not url or self._find(url.lower(), self.bad_strings):
                 continue
-            # LOGGER.info(f"source of the image: {url}")
             image = self._retry_image(url)
             if image:
                 images += [image]
@@ -78,7 +80,7 @@ class CrawlImages(BaseCrawler):
                 return True
         return False
 
-    def _retry_image(self, url: str, count=5) -> Optional[Image.Image]:
+    def _retry_image(self, url: str, count: int = 5) -> Optional[Image.Image]:
         if count == 0:
             LOGGER.info(f"[{self.instance}] Cant fetch the image, giving up: {url}")
             return None
@@ -103,13 +105,8 @@ class CrawlImages(BaseCrawler):
         if count == 0:
             return False
         try:
-            WebDriverWait(driver, Config.read_env("times.short_delay")).until(
-                EC.presence_of_all_elements_located(
-                    (
-                        By.XPATH,
-                        "//div[@id='modal-root']//img[1]",
-                    )
-                )
+            GoToUrl(driver=driver, timeout=Config.read_env("times.short_delay")).go(
+                url="", xpath="//div[@id='modal-root']//picture[1]/img[1]"
             )
             if count != 5:
                 LOGGER.info(f"[{self.instance}] Resolved!")
@@ -120,6 +117,16 @@ class CrawlImages(BaseCrawler):
 
     def _refresh(self, driver: WebDriver) -> None:
         LOGGER.info(f"[{self.instance}] Refreshing")
-        driver.refresh()
-        time.sleep(Config.read_env("times.short_delay"))
+        try:
+            LOGGER.info(f"[{self.instance}] Going to dummy url")
+            GoToUrl(driver=driver, timeout=Config.read_env("times.short_delay")).go(
+                url=Config.read("main.dummy_url"), xpath=Config.read("main.dummy_xpath")
+            )
+            LOGGER.info(f"[{self.instance}] We are dummied :)")
+        except Exception:
+            import traceback
+
+            traceback.print_exc()
+            # time.sleep(Config.read_env("times.short_delay"))
+        driver.back()
         driver.refresh()

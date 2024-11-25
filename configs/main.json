@@ -3,7 +3,8 @@
 	"loading_timelimit": 99,
 	"urls_path": "outputs",
 	"base_url": "https://www.digikala.com",
-	"dummy_url": "google.com",
+	"dummy_url": "https://www.google.com",
+	"dummy_xpath": "//form[1]//textarea[1]",
 	"bad_strings": [
 		"svg",
 		"logo"
