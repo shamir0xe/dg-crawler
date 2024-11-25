@@ -49,7 +49,7 @@ class CrawlImages(BaseCrawler):
         return self.product.images
 
     def _get_image(self, driver: WebDriver) -> List[Image.Image]:
-        xpath = "//div[@id='modal-root']//picture[1]/img[1]"
+        xpath = "//div[@id='modal-root']//img[1]"
         elements = driver.find_elements(
             By.XPATH,
             xpath,
@@ -96,7 +96,7 @@ class CrawlImages(BaseCrawler):
                 EC.presence_of_all_elements_located(
                     (
                         By.XPATH,
-                        "//div[@id='modal-root']//picture[1]/img[1]",
+                        "//div[@id='modal-root']//img[1]",
                     )
                 )
             )
