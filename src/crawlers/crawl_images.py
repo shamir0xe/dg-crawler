@@ -57,8 +57,8 @@ class CrawlImages(BaseCrawler):
         images = []
         for element in elements:
             url = element.get_attribute("src")
-            if not url:
-                url = ""
+            if not url or "svg" in url.lower():
+                continue
             # LOGGER.info(f"source of the image: {url}")
             image = self._retry_image(url)
             if image:
