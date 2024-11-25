@@ -25,5 +25,7 @@ class ChunkImageFetcher:
             for img in product.images:
                 possible = CheckImagePossibilities(image=img).check()
                 if possible:
-                    SaveImage(image=img).save(name=f"{product.name}#{count+1:02d}")
+                    SaveImage(image=img).save(
+                        name=f"{product.name}-{product.id}-#{count+1:02d}"
+                    )
                     count += 1

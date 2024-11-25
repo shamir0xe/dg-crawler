@@ -28,6 +28,7 @@ class CrawlImages(BaseCrawler):
     def crawl(self, instance: int) -> List[Image.Image]:
         self.instance = instance
         self.user_agent = GetAgent.get()
+        self.bad_strings = Config.read("main.bad_strings")
         base_url = Config.read("main.base_url")
         url = base_url + self.product.url
         if url[-1] != "/":
@@ -44,8 +45,8 @@ class CrawlImages(BaseCrawler):
         try:
             images = self._get_image(driver)
             self.product.images += images
-        except Exception:
-            LOGGER.info("Exception Occured => End.")
+        except Exception as e:
+            LOGGER.info(f"Exception Occured: {str(e)[:22]}")
         return self.product.images
 
     def _get_image(self, driver: WebDriver) -> List[Image.Image]:
@@ -56,16 +57,26 @@ class CrawlImages(BaseCrawler):
         )
         images = []
         for element in elements:
-            url = element.get_attribute("src")
-            if not url or "svg" in url.lower():
+            url = ""
+            try:
+                url = element.get_attribute("src")
+            except Exception:
+                pass
+            if not url or self._find(url.lower(), self.bad_strings):
                 continue
             # LOGGER.info(f"source of the image: {url}")
             image = self._retry_image(url)
             if image:
                 images += [image]
-        if not images:
-            raise Exception("END")
+        # if not images:
+        #     raise Exception("END")
         return images
+
+    def _find(self, string: str, bad_strings: List[str]) -> bool:
+        for temp in bad_strings:
+            if temp in string:
+                return True
+        return False
 
     def _retry_image(self, url: str, count=5) -> Optional[Image.Image]:
         if count == 0:
