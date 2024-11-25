@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from PIL.Image import Image
 
 
@@ -8,6 +8,7 @@ class Product:
     name: str
     url: str
     images: List[Image]
+    id: Optional[str] = None
 
     def __hash__(self) -> int:
         return hash(self.url)

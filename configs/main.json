@@ -1,5 +1,7 @@
 {
-  "output_dir": "outputs/{}.{}",
-  "loading_timelimit": 99,
-  "urls_path": "outputs"
+	"output_dir": "outputs/{}.{}",
+	"loading_timelimit": 99,
+	"urls_path": "outputs",
+	"base_url": "https://www.digikala.com",
+	"dummy_url": "google.com"
 }

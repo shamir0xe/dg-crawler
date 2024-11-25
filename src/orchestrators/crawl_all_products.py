@@ -1,16 +1,25 @@
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from typing import List, Set
 import logging
 from src.helpers.config import Config
 from src.crawlers.url_crawler import UrlCrawler
+from src.crawlers.url_crawler_2 import UrlCrawler2
 from src.models.product import Product
 from src.crawlers.base_crawler import BaseCrawler
 
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclass
 class CrawlAllProducts(BaseCrawler):
+    section: int
+
     def crawl(self) -> List[Product]:
+        urls = Config.read_env("urls")
+        return UrlCrawler2(urls[0], self.section).crawl()
+
+    def crawl_old(self) -> List[Product]:
         urls = Config.read_env("urls")
         products: Set[Product] = set()
         thread_cnt = Config.read_env("thread_cnt")
