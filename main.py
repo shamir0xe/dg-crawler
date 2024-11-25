@@ -1,12 +1,12 @@
 import logging
 
 from random import shuffle
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
+from src.orchestrators.product_manager import ProductManager
 from src.actions.save_product_urls import SaveProductUrls
 from src.orchestrators.crawl_all_products import CrawlAllProducts
 from src.helpers.config import Config
 from src.orchestrators.chunk_image_fetcher import ChunkImageFetcher
-from src.orchestrators.chunk_products import ChunkProducts
 from pylib_0xe.argument.argument_parser import ArgumentParser
 
 logging.basicConfig(
@@ -51,15 +51,16 @@ def main():
     # 2
     shuffle(products)
     thread_count = Config.read_env("thread_cnt")
-    product_chunks = ChunkProducts.chunk(products=products, chunk_count=thread_count)
-    with ThreadPoolExecutor(max_workers=thread_count) as executor:
+    # product_chunks = ChunkProducts.chunk(products=products, chunk_count=thread_count)
+    pm = ProductManager(set(products))
+    with ThreadPoolExecutor() as executor:
         futures = []
-        for i in range(len(product_chunks)):
+        for i in range(thread_count):
             futures += [
-                executor.submit(
-                    ChunkImageFetcher.run, product_chunks[i], (i % thread_count) + 1
-                )
+                executor.submit(ChunkImageFetcher.fetch, pm, (i % thread_count) + 1)
             ]
+        wait(futures)
+        LOGGER.info("Done & Dusted ;)")
 
 
 if __name__ == "__main__":

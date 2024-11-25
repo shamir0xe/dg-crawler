@@ -3,17 +3,40 @@ import time
 from random import random
 from typing import List
 
-from pylib_0xe.string.hash_generator import HashGenerator
-from ulid import ULID
-
+from src.actions.get_driver import GetDriver
+from src.orchestrators.product_manager import ProductManager
+from src.actions.save_product_images import SaveProductImages
 from src.crawlers.crawl_images import CrawlImages
-from src.orchestrators.check_image_possibilities import CheckImagePossibilities
-from src.orchestrators.save_image import SaveImage
 
 LOGGER = logging.getLogger(__name__)
 
 
 class ChunkImageFetcher:
+    @staticmethod
+    def fetch(product_manager: ProductManager, instance: int) -> None:
+        time.sleep(5 * random())
+        LOGGER.info(f"Instanciate #{instance}")
+        while product_manager.have_any():
+            product = product_manager.get_one()
+            if not product:
+                break
+            try:
+                CrawlImages(product=product).crawl(instance)
+                if not product.images:
+                    raise Exception()
+                product_manager.resolve(product)
+            except Exception:
+                product_manager.failure(product)
+                continue
+            try:
+                SaveProductImages(product=product).save()
+            except Exception:
+                import traceback
+
+                traceback.print_exc()
+        LOGGER.info(f"Instance #{instance} going to die")
+        GetDriver.get(instance).close()
+
     @staticmethod
     def run(products: List, instance: int):
         time.sleep(5 * random())
@@ -21,11 +44,3 @@ class ChunkImageFetcher:
         # LOGGER.info(products)
         for product in products:
             CrawlImages(product=product).crawl(instance)
-            count = 0
-            for img in product.images:
-                possible = CheckImagePossibilities(image=img).check()
-                if possible:
-                    SaveImage(image=img).save(
-                        name=f"{product.name}-{product.id}-#{count+1:02d}"
-                    )
-                    count += 1

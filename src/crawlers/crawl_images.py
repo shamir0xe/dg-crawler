@@ -19,6 +19,8 @@ from selenium.webdriver.common.by import By
 
 LOGGER = logging.getLogger(__name__)
 
+RETRY_CNT = 5
+
 
 @dataclass
 class CrawlImages(BaseCrawler):
@@ -80,7 +82,7 @@ class CrawlImages(BaseCrawler):
                 return True
         return False
 
-    def _retry_image(self, url: str, count: int = 5) -> Optional[Image.Image]:
+    def _retry_image(self, url: str, count: int = RETRY_CNT) -> Optional[Image.Image]:
         if count == 0:
             LOGGER.info(f"[{self.instance}] Cant fetch the image, giving up: {url}")
             return None
@@ -89,26 +91,26 @@ class CrawlImages(BaseCrawler):
                 url,
                 stream=True,
                 timeout=Config.read_env("times.short_delay"),
+                allow_redirects=True,
                 headers={"User-Agent": self.user_agent},
             )
             if r.status_code == 200:
-                if count != 5:
+                if count != RETRY_CNT:
                     LOGGER.info(f"[{self.instance}] Resolved!")
                 return Image.open(io.BytesIO(r.content))
         except Exception:
             pass
-        time.sleep(Config.read_env("times.short_delay"))
         LOGGER.info(f"[{self.instance}] Retrying")
         return self._retry_image(url, count - 1)
 
-    def _wait(self, driver: WebDriver, count: int = 5):
+    def _wait(self, driver: WebDriver, count: int = RETRY_CNT):
         if count == 0:
             return False
         try:
             GoToUrl(driver=driver, timeout=Config.read_env("times.short_delay")).go(
                 url="", xpath="//div[@id='modal-root']//picture[1]/img[1]"
             )
-            if count != 5:
+            if count != RETRY_CNT:
                 LOGGER.info(f"[{self.instance}] Resolved!")
             return True
         except TimeoutException:

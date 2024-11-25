@@ -22,7 +22,9 @@ class GetDriver:
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--window-size=1920x1080")
         exec_path = Config.read_env("executable_path").format(i)
-        return webdriver.Chrome(
+        driver = webdriver.Chrome(
             service=Service(executable_path=exec_path),
             options=chrome_options,
         )
+        driver.set_page_load_timeout(Config.read_env("times.page_timeout"))
+        return driver
