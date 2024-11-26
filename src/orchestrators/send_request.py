@@ -1,31 +1,54 @@
 from __future__ import annotations
+import subprocess
+import httpx
+import logging
+import json
+from typing import Dict, Optional
 import requests
 import time
+
+from selenium.webdriver.common.by import By
+from src.actions.get_driver import GetDriver
+from src.actions.go_to_url import GoToUrl
 from src.actions.get_agent import GetAgent
 from src.helpers.config import Config
 from random import random
 
+logging.getLogger("httpx").setLevel(logging.WARNING)
+LOGGER = logging.getLogger(__name__)
+
 
 class SendRequest:
+    session: Optional[requests.Session]
+
+    def __init__(self) -> None:
+        self.session = None
+        self.cnt = 0
+
     @staticmethod
-    def send(url: str) -> str:
+    def send(url: str) -> Optional[Dict]:
         retry_count = Config.read_env("retry_count")
         retry_bak = retry_count
         base_time = Config.read_env("times.base")
+        send_req = SendRequest()
         while retry_count > 0:
             try:
-                return SendRequest.trying(url)
+                return send_req.trying(url)
             except Exception:
                 pass
             retry_count -= 1
             time.sleep(base_time * (retry_bak - retry_count) + base_time * random())
 
-        return ""
+        return None
 
-    @staticmethod
-    def trying(url: str) -> str:
-        headers = {"User-Agent": GetAgent.get()}
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+    def trying(self, url: str) -> Dict:
+        driver = GetDriver().get(2)
+        GoToUrl(driver, 10).go(url, "//body//pre")
+        element = driver.find_element(By.XPATH, "//body//pre")
+        str_data = element.get_attribute("innerHTML")
+        if not str_data:
+            raise Exception()
+        data = json.loads(str_data)
+        if not data:
+            raise Exception()
         return data

@@ -2,6 +2,7 @@ import logging
 
 from random import shuffle
 from concurrent.futures import ThreadPoolExecutor, wait
+from src.orchestrators.send_request import SendRequest
 from src.actions.initialize import Initialize
 from src.orchestrators.product_manager import ProductManager
 from src.actions.save_product_urls import SaveProductUrls
@@ -66,5 +67,56 @@ def main():
         LOGGER.info("Done & Dusted ;)")
 
 
+def url_builder(page: int, sort: int) -> str:
+    # url = "https://api.digikala.com/v1/categories/suspension-systems-and-component/search/"
+    # url = "https://api.digikala.com/v1/categories/girls-headwear/search/"
+    # url = "https://api.digikala.com/v1/categories/rural-tea/search/"
+    # url = "https://api.digikala.com/v1/categories/religious-printed-book/search/"
+    # url = "https://api.digikala.com/v1/categories/medical-Insoles/search/"
+    url = "https://api.digikala.com/v1/categories/punching-bag/search/"
+    url += f"?sort={sort}"
+    url += f"&page={page}"
+    return url
+
+
+def examine():
+    from tqdm import tqdm
+
+    sort_set = [
+        {"id": 22, "title_fa": "مرتبط‌ترین"},  # 64, 21, 11, 1, 1, 1
+        {"id": 4, "title_fa": "پربازدیدترین"},  # N, 52, 40, 1, 1, 7
+        {"id": 1, "title_fa": "جدیدترین"},  # 15, 11, 3, 94, 46, 1
+        {"id": 7, "title_fa": "پرفروش‌ترین‌"},  # N, 45, 23, 2, 1, N
+        {"id": 20, "title_fa": "ارزان‌ترین"},  # 39, 36, 46, 40, 19, 8
+        {"id": 21, "title_fa": "گران‌ترین"},  # N, 37, 4, N, 54, 1
+        {"id": 25, "title_fa": "سریع‌ترین ارسال"},  # 51, 54, 11, 16, 11, 2
+        {"id": 27, "title_fa": "پیشنهاد خریداران"},  # N, 38, N, 31, 12, 6
+        {"id": 29, "title_fa": "منتخب"},  # N, 52, N, 19, 1, 7
+    ]
+    # target_id = 17320403
+    # target_id = 17360539
+    # target_id = 16919467
+    # target_id = 8625255
+    # target_id = 4463244
+    target_id = 17168537
+    for st in sort_set:
+        found = False
+        for page in tqdm(range(0, 100)):
+            url = url_builder(page + 1, st["id"])
+            data = SendRequest.send(url)
+            if not data:
+                LOGGER.info(f"error occured {st['title_fa']}")
+                continue
+            products = data["data"]["products"]
+            ids = [product["id"] for product in products]
+            if target_id in ids:
+                LOGGER.info(f"{st['title_fa']}: {page+1}")
+                found = True
+                break
+        if not found:
+            LOGGER.info(f"{st['id']} not found")
+
+
 if __name__ == "__main__":
+    # examine()
     main()
