@@ -31,7 +31,7 @@ class ProductManager:
         return len(self.products) > 0
 
     def resolve(self, product: Product) -> None:
-        LOGGER.info(f"[PM] Resolve {product.id}")
+        LOGGER.info(f"[PM] Success {product.id}")
         if product.id:
             self.pendings.pop(product.id)
 
