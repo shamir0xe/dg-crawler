@@ -35,7 +35,7 @@ class CrawlImages(BaseCrawler):
         if url[-1] != "/":
             url += "/"
         url += "#gallery"
-        driver = GetDriver.get(instance)
+        driver = GetDriver().get(instance)
 
         try:
             driver.get(url)
@@ -48,13 +48,13 @@ class CrawlImages(BaseCrawler):
             return self.product.images
 
         try:
-            images = self._get_image(driver)
+            images = self._get_images(driver)
             self.product.images += images
         except Exception as e:
             LOGGER.info(f"Exception Occured: {str(e)[:22]}")
         return self.product.images
 
-    def _get_image(self, driver: WebDriver) -> List[Image.Image]:
+    def _get_images(self, driver: WebDriver) -> List[Image.Image]:
         xpath = "//div[@id='modal-root']//img[1]"
         elements = driver.find_elements(
             By.XPATH,
@@ -97,7 +97,10 @@ class CrawlImages(BaseCrawler):
             if r.status_code == 200:
                 if count != RETRY_CNT:
                     LOGGER.info(f"[{self.instance}] Resolved!")
-                return Image.open(io.BytesIO(r.content))
+                img = Image.open(io.BytesIO(r.content))
+                cp_img = img.copy()
+                img.close()
+                return cp_img
         except Exception:
             pass
         LOGGER.info(f"[{self.instance}] Retrying")
@@ -124,11 +127,8 @@ class CrawlImages(BaseCrawler):
             GoToUrl(driver=driver, timeout=Config.read_env("times.short_delay")).go(
                 url=Config.read("main.dummy_url"), xpath=Config.read("main.dummy_xpath")
             )
-            LOGGER.info(f"[{self.instance}] We are dummied :)")
+            LOGGER.info(f"[{self.instance}] We are dummies :)")
         except Exception:
-            import traceback
-
-            traceback.print_exc()
-            # time.sleep(Config.read_env("times.short_delay"))
+            pass
         driver.back()
         driver.refresh()

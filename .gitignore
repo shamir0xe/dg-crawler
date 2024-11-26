@@ -6,6 +6,9 @@ venv
 outputs
 env.json
 
+# base image
+base.jpg
+
 # C extensions
 *.so
 

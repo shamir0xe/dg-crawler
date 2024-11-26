@@ -2,6 +2,7 @@ import logging
 
 from random import shuffle
 from concurrent.futures import ThreadPoolExecutor, wait
+from src.actions.initialize import Initialize
 from src.orchestrators.product_manager import ProductManager
 from src.actions.save_product_urls import SaveProductUrls
 from src.orchestrators.crawl_all_products import CrawlAllProducts
@@ -26,6 +27,8 @@ def main():
         3) Run YOLO on each image, and tag it if there contains
         an suspicious text-box
     """
+    Initialize()
+
     # 1
     if not ArgumentParser.is_option("n"):
         raise Exception("Provide which part is yours (1-#participants_cnt)")

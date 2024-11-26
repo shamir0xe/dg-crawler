@@ -8,5 +8,9 @@
 	"bad_strings": [
 		"svg",
 		"logo"
-	]
+	],
+	"base_image": {
+		"path": "./base.jpg",
+		"sample_cnt": 1000
+	}
 }

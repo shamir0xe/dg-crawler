@@ -27,7 +27,7 @@ class UrlCrawler(BaseCrawler):
     def crawl(self, instance: int) -> List[Product]:
         wrappers: List[Product] = []
         try:
-            driver = GetDriver.get(instance)
+            driver = GetDriver().get(instance)
             LOGGER.info(f"going to crawl {self.url}")
             driver.get(self.url)
             debug_begin = time.time()

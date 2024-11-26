@@ -1,19 +1,24 @@
-from dataclasses import dataclass
-from functools import lru_cache
+from typing import Dict
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
+from src.helpers.decorators.singleton import singleton
 from src.helpers.config import Config
 from src.actions.get_agent import GetAgent
 
 
-@dataclass
+@singleton
 class GetDriver:
 
-    @lru_cache
-    @staticmethod
-    def get(i: int) -> WebDriver:
+    def __init__(self) -> None:
+        self.drivers: Dict[int, WebDriver] = {}
+
+    def revoke(self, i: int) -> WebDriver:
+        self.drivers[i] = self.build_one(i)
+        return self.drivers[i]
+
+    def build_one(self, i: int) -> WebDriver:
         user_agent = GetAgent.get()
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("user-agent={}".format(user_agent))
@@ -28,3 +33,8 @@ class GetDriver:
         )
         driver.set_page_load_timeout(Config.read_env("times.page_timeout"))
         return driver
+
+    def get(self, i: int) -> WebDriver:
+        if i in self.drivers:
+            return self.drivers[i]
+        return self.revoke(i)
