@@ -44,10 +44,11 @@ def main():
     for product in products:
         product_urls += [
             {
+                "id": product.id,
                 "name": product.name,
                 "url": product.url,
-                "id": product.id,
                 "page": product.page,
+                "category_id": product.category_id,
             }
         ]
     SaveProductUrls.save(product_urls)
