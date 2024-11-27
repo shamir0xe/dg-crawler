@@ -3,7 +3,7 @@ import time
 from random import random
 from typing import List
 
-from src.actions.clear_driver_cookies import ClearDriverCookies
+from src.orchestrators.filter_images_2 import FilterImages2
 from src.orchestrators.filter_images import FilterImages
 from src.actions.get_driver import GetDriver
 from src.orchestrators.product_manager import ProductManager
@@ -34,7 +34,8 @@ class ChunkImageFetcher:
                 continue
             try:
                 # Filter the images based on the provided sample image
-                product.images = FilterImages().filter(product=product)
+                # product.images = FilterImages().filter(product=product)
+                product.images = FilterImages2().filter(product=product)
                 if product.images:
                     # Save the filtered images if exists any
                     SaveProductImages(product=product).save()

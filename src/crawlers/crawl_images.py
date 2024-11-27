@@ -32,9 +32,9 @@ class CrawlImages(BaseCrawler):
         self.bad_strings = Config.read("main.bad_strings")
         base_url = Config.read("main.base_url")
         url = base_url + self.product.url
-        if url[-1] != "/":
-            url += "/"
-        url += "#gallery"
+        # if url[-1] != "/":
+        #     url += "/"
+        # url += "#gallery"
         driver = GetDriver().get(instance)
 
         try:
@@ -42,6 +42,9 @@ class CrawlImages(BaseCrawler):
         except Exception:
             LOGGER.info(f"[{self.instance}] Cannot fetch the URL")
             return self.product.images
+
+        self.wait_xpath = Config.read("main.wait_xpath")
+        self.imgs_xpath = Config.read("main.imgs_xpath")
 
         if not self._wait(driver):
             LOGGER.info(f"[{self.instance}] Empty IMGS")
@@ -55,10 +58,9 @@ class CrawlImages(BaseCrawler):
         return self.product.images
 
     def _get_images(self, driver: WebDriver) -> List[Image.Image]:
-        xpath = "//div[@id='modal-root']//img[1]"
         elements = driver.find_elements(
             By.XPATH,
-            xpath,
+            self.imgs_xpath,
         )
         images = []
         for element in elements:
@@ -68,6 +70,8 @@ class CrawlImages(BaseCrawler):
             except Exception:
                 pass
             if not url or self._find(url.lower(), self.bad_strings):
+                continue
+            if "http" not in url[:11].lower():
                 continue
             image = self._retry_image(url)
             if image:
@@ -111,7 +115,7 @@ class CrawlImages(BaseCrawler):
             return False
         try:
             GoToUrl(driver=driver, timeout=Config.read_env("times.short_delay")).go(
-                url="", xpath="//div[@id='modal-root']//picture[1]/img[1]"
+                url="", xpath=self.wait_xpath
             )
             if count != RETRY_CNT:
                 LOGGER.info(f"[{self.instance}] Resolved!")
