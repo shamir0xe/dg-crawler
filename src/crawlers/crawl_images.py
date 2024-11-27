@@ -32,9 +32,9 @@ class CrawlImages(BaseCrawler):
         self.bad_strings = Config.read("main.bad_strings")
         base_url = Config.read("main.base_url")
         url = base_url + self.product.url
-        # if url[-1] != "/":
-        #     url += "/"
-        # url += "#gallery"
+        if url[-1] != "/":
+            url += "/"
+        url += "#gallery"
         driver = GetDriver().get(instance)
 
         try:

@@ -8,7 +8,8 @@
 	"dummy_url": "https://www.google.com",
 	"dummy_xpath": "//form[1]//textarea[1]",
 	"bad_strings": [
-		".svg"
+		".svg",
+		"/statics/"
 	],
 	"base_image": {
 		"path": "./base.jpg",
