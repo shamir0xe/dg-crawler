@@ -10,6 +10,7 @@ class Product:
     url: str
     page: int
     images: List[Image]
+    category_id: int
     id: str = field(default_factory=ULID().generate)
 
     def __lt__(self, obj) -> bool:

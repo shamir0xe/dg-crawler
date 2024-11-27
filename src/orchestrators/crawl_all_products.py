@@ -22,11 +22,14 @@ class CrawlAllProducts(BaseCrawler):
     def crawl(self) -> List[Product]:
         main_category = Config.read_env("main_category")
         leaf_categories = FindLeafCategories.find(main_category)
-        LOGGER.info(leaf_categories)
         products = []
         for category in tqdm(leaf_categories):
             products += UrlCrawler3(category, self.player_number).crawl()
         products = sorted(products)
+        for product in products:
+            LOGGER.info(
+                f"# [{product.page} -- {product.name} -- {product.category_id}]"
+            )
         return products
 
     def crawl_old(self) -> List[Product]:

@@ -63,22 +63,21 @@ class UrlCrawler3(BaseCrawler):
         result: List[Product] = []
         pages = []
         cur_idx = start_idx
-        while cur_idx <= min(30, self.category.page_cnt):
+        max_search_page = Config.read_env("max_search_page")
+        while cur_idx <= min(max_search_page, self.category.page_cnt):
             pages += [cur_idx]
             cur_idx += participants
-        base_search = Config.read_env("base_search_cnt")
+        base_search_cnt = Config.read_env("base_search_cnt")
         base_sort_numbers = Config.read_env("base_sort_numbers")
         best_sort_number = Config.read_env("best_sort_number")
-        max_search_page = Config.read_env("max_search_page")
 
         for i, page in enumerate(pages):
-            if len(result) >= max_search_page:
+            if len(result) >= 333:
                 break
             if i % thread_cnt == thread_number:
-                # LOGGER.info(f"[#{thread_number}] {i} #{page}")
                 # Do Crawl
                 urls = []
-                if i < base_search:
+                if i < base_search_cnt:
                     for sort_number in base_sort_numbers:
                         url = ModifyUrlPerPage.modify(
                             url=self.category.url, page=page, sort_number=sort_number
@@ -120,7 +119,12 @@ class UrlCrawler3(BaseCrawler):
                             pass
                         result += [
                             Product(
-                                id=str(id), url=url, name=name, page=page, images=[]
+                                id=str(id),
+                                url=url,
+                                name=name,
+                                page=page,
+                                category_id=self.category.id,
+                                images=[],
                             )
                         ]
         return result
