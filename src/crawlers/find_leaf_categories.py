@@ -34,7 +34,7 @@ class FindLeafCategories:
                 break
             url = CatUrlBuilder.build(cat)
             data = SendRequest.send(url, instance)
-            if not data:
+            if not data or not "data" in data:
                 continue
             if (
                 "sub_categories_best_selling" not in data["data"]

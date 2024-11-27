@@ -70,9 +70,10 @@ class UrlCrawler3(BaseCrawler):
         base_search_cnt = Config.read_env("base_search_cnt")
         base_sort_numbers = Config.read_env("base_sort_numbers")
         best_sort_number = Config.read_env("best_sort_number")
+        max_res = Config.read_env("max_res_per_cat")
 
         for i, page in enumerate(pages):
-            if len(result) >= 333:
+            if len(result) >= max_res:
                 break
             if i % thread_cnt == thread_number:
                 # Do Crawl
