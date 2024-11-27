@@ -26,6 +26,7 @@ class GetDriver:
             chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--window-size=1920x1080")
+        chrome_options.page_load_strategy = "normal"
         exec_path = Config.read_env("executable_path").format(i)
         driver = webdriver.Chrome(
             service=Service(executable_path=exec_path),
