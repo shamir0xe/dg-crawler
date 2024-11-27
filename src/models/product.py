@@ -7,8 +7,14 @@ from PIL.Image import Image
 class Product:
     name: str
     url: str
+    page: int
     images: List[Image]
     id: Optional[str] = None
+
+    def __lt__(self, obj) -> bool:
+        if isinstance(obj, Product) and self.page < obj.page:
+            return True
+        return False
 
     def __hash__(self) -> int:
         return hash(self.url)

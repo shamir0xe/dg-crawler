@@ -1,10 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 from dataclasses import dataclass
 from typing import List, Set
 import logging
+from src.crawlers.find_leaf_categories import FindLeafCategories
+from src.crawlers.url_crawler_3 import UrlCrawler3
 from src.helpers.config import Config
 from src.crawlers.url_crawler import UrlCrawler
-from src.crawlers.url_crawler_2 import UrlCrawler2
+
+# from src.crawlers.url_crawler_2 import UrlCrawler2
 from src.models.product import Product
 from src.crawlers.base_crawler import BaseCrawler
 
@@ -13,11 +17,17 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class CrawlAllProducts(BaseCrawler):
-    section: int
+    player_number: int
 
     def crawl(self) -> List[Product]:
-        urls = Config.read_env("urls")
-        return UrlCrawler2(urls[0], self.section).crawl()
+        main_category = Config.read_env("main_category")
+        leaf_categories = FindLeafCategories.find(main_category)
+        LOGGER.info(leaf_categories)
+        products = []
+        for category in tqdm(leaf_categories):
+            products += UrlCrawler3(category, self.player_number).crawl()
+        products = sorted(products)
+        return products
 
     def crawl_old(self) -> List[Product]:
         urls = Config.read_env("urls")

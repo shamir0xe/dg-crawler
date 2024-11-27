@@ -1,6 +1,5 @@
 import logging
 
-from random import shuffle
 from concurrent.futures import ThreadPoolExecutor, wait
 from src.orchestrators.send_request import SendRequest
 from src.actions.initialize import Initialize
@@ -38,7 +37,7 @@ def main():
         raise Exception("Option is not valid")
     player_number = int(player_number)
     assert 1 <= player_number <= Config.read_env("participants")
-    products = CrawlAllProducts(section=player_number).crawl()
+    products = CrawlAllProducts(player_number=player_number).crawl()
 
     # 1.5
     product_urls = []
@@ -48,12 +47,13 @@ def main():
                 "name": product.name,
                 "url": product.url,
                 "id": product.id,
+                "page": product.page,
             }
         ]
     SaveProductUrls.save(product_urls)
 
     # 2
-    shuffle(products)
+    # shuffle(products)
     thread_count = Config.read_env("thread_cnt")
     # product_chunks = ChunkProducts.chunk(products=products, chunk_count=thread_count)
     pm = ProductManager(set(products))
@@ -84,14 +84,14 @@ def examine():
 
     sort_set = [
         {"id": 22, "title_fa": "مرتبط‌ترین"},  # 64, 21, 11, 1, 1, 1
-        {"id": 4, "title_fa": "پربازدیدترین"},  # N, 52, 40, 1, 1, 7
+        # {"id": 4, "title_fa": "پربازدیدترین"},  # N, 52, 40, 1, 1, 7
         {"id": 1, "title_fa": "جدیدترین"},  # 15, 11, 3, 94, 46, 1
-        {"id": 7, "title_fa": "پرفروش‌ترین‌"},  # N, 45, 23, 2, 1, N
-        {"id": 20, "title_fa": "ارزان‌ترین"},  # 39, 36, 46, 40, 19, 8
-        {"id": 21, "title_fa": "گران‌ترین"},  # N, 37, 4, N, 54, 1
+        # {"id": 7, "title_fa": "پرفروش‌ترین‌"},  # N, 45, 23, 2, 1, N
+        # {"id": 20, "title_fa": "ارزان‌ترین"},  # 39, 36, 46, 40, 19, 8
+        # {"id": 21, "title_fa": "گران‌ترین"},  # N, 37, 4, N, 54, 1
         {"id": 25, "title_fa": "سریع‌ترین ارسال"},  # 51, 54, 11, 16, 11, 2
-        {"id": 27, "title_fa": "پیشنهاد خریداران"},  # N, 38, N, 31, 12, 6
-        {"id": 29, "title_fa": "منتخب"},  # N, 52, N, 19, 1, 7
+        # {"id": 27, "title_fa": "پیشنهاد خریداران"},  # N, 38, N, 31, 12, 6
+        # {"id": 29, "title_fa": "منتخب"},  # N, 52, N, 19, 1, 7
     ]
     # target_id = 17320403
     # target_id = 17360539
