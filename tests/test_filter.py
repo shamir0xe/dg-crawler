@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 class TestFilter:
     def test_filter(self):
         images_dir = "/home/shamir0xe/Downloads/Telegram Desktop/#_(/#:("
-        product = Product(name="test-product", url="/", images=[], id="14")
+        product = Product(name="test-product", url="/", page=1, images=[], id="14")
         for file in File.get_all_files(images_dir, ext="jpg"):
             image_path = os.path.join(images_dir, file)
             image = Image.open(image_path)

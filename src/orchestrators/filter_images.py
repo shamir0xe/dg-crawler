@@ -33,9 +33,9 @@ class FilterImages:
         return result
 
     def _match(self, image: Image.Image) -> bool:
-        if image.width != self.width or image.height != self.height:
-            return False
         image = image.convert("RGB")
+        if image.width != self.width or image.height != self.height:
+            image = image.resize((self.width, self.height))
         values = [image.getpixel(self.sample_points[i]) for i in range(self.n)]
         cnt = 0
         for i in range(self.n):
