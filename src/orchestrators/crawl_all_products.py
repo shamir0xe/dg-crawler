@@ -25,7 +25,7 @@ class CrawlAllProducts(BaseCrawler):
     executor: ThreadPoolExecutor
 
     def crawl(self, pm: ProductManager) -> None:
-        for category in tqdm(self.leaf_categories):
+        for category in self.leaf_categories:
             UrlCrawler3(
                 category, self.player_number, pm=pm, executor=self.executor
             ).crawl()

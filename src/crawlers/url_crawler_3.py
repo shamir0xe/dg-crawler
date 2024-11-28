@@ -12,7 +12,7 @@ from src.crawlers.base_crawler import BaseCrawler
 from pylib_0xe.json.json_helper import JsonHelper
 
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("[UrlCrawler]")
 
 
 @dataclass
@@ -24,7 +24,6 @@ class UrlCrawler3(BaseCrawler):
 
     def crawl(self) -> None:
         self._base_time = Config.read_env("times.base")
-        products = []
         thread_cnt = Config.read_env("thread_cnt")
         participants = Config.read_env("participants")
         # with ThreadPoolExecutor() as executor:
