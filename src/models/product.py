@@ -9,13 +9,18 @@ class Product:
     name: str
     url: str
     page: int
-    images: List[Image]
     category_id: int
     id: str = field(default_factory=ULID().generate)
+    images: List[Image] = field(default_factory=list)
 
     def __lt__(self, obj) -> bool:
-        if isinstance(obj, Product) and self.page < obj.page:
-            return True
+        """
+        page INC
+        id DESC
+        """
+        if isinstance(obj, Product):
+            if self.page < obj.page or (self.page == obj.page and self.id > obj.id):
+                return True
         return False
 
     def __repr__(self) -> str:
@@ -27,4 +32,4 @@ class Product:
     def __eq__(self, value: object, /) -> bool:
         if not isinstance(value, Product):
             return False
-        return self.url == value.url
+        return self.id == value.id
