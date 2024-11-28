@@ -2,13 +2,14 @@ from random import randint
 from PIL import Image
 import math
 from typing import List, Tuple
+from src.orchestrators.filter.base_filter import BaseFilter
 from src.helpers.config import Config
 from src.models.product import Product
 from src.helpers.decorators.singleton import singleton
 
 
 @singleton
-class FilterImages:
+class FilterImages(BaseFilter):
     def __init__(self) -> None:
         self.sample_image = Image.open(Config.read("main.base_image.path"))
         self.sample_image = self.sample_image.convert("RGB")
@@ -25,9 +26,9 @@ class FilterImages:
             self.sample_image.getpixel(self.sample_points[i]) for i in range(self.n)
         ]
 
-    def filter(self, product: Product) -> List[Image.Image]:
+    def filter(self, obj: Product) -> List[Image.Image]:
         result = []
-        for image in product.images:
+        for image in obj.images:
             if self._match(image):
                 result += [image]
         return result

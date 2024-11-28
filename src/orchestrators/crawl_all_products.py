@@ -26,10 +26,6 @@ class CrawlAllProducts(BaseCrawler):
         for category in tqdm(leaf_categories):
             products += UrlCrawler3(category, self.player_number).crawl()
         products = sorted(products)
-        for product in products:
-            LOGGER.info(
-                f"# [{product.page} -- {product.name} -- {product.category_id}]"
-            )
         return products
 
     def crawl_old(self) -> List[Product]:
