@@ -26,7 +26,7 @@ class ChunkImageFetcher:
                 time.sleep(sleep_time * random())
                 continue
             try:
-                CrawlImages(product=product).crawl(instance)
+                CrawlImages(product=product, instance=instance).crawl()
                 if not product.images:
                     raise Exception()
                 product_manager.resolve(product)
@@ -53,4 +53,4 @@ class ChunkImageFetcher:
         time.sleep(5 * random())
         LOGGER.info(f"Run chunk #{instance}")
         for product in products:
-            CrawlImages(product=product).crawl(instance)
+            CrawlImages(product=product, instance=instance).crawl()

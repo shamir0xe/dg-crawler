@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 import threading
 import logging
 
@@ -22,6 +22,7 @@ class ProductManager:
         )
     )
     pendings: Dict[int, Product] = field(default_factory=dict)
+    sent: Set[int] = field(default_factory=set)
 
     def add_one(self, p: Product) -> None:
         with lock:
@@ -44,13 +45,17 @@ class ProductManager:
     def get_one(self) -> Optional[Product]:
         with lock:
             if self.have_any():
-                node = self.tree.get_minimum()
-                if not node:
-                    return None
-                product = node.data
-                self.tree.remove(node)
-                self.pendings[product.id] = product
-                return product
+                while True:
+                    node = self.tree.get_minimum()
+                    if not node:
+                        return None
+                    product = node.data
+                    self.tree.remove(node)
+                    if product.id in self.sent:
+                        continue
+                    self.sent.add(product.id)
+                    self.pendings[product.id] = product
+                    return product
             else:
                 return None
 
@@ -59,18 +64,20 @@ class ProductManager:
 
     def resolve(self, product: Product) -> None:
         LOGGER.info(f"Success #{product.id} // P#{product.page}")
-        try:
-            self.pendings.pop(product.id)
-        except Exception:
-            pass
+        with lock:
+            try:
+                self.pendings.pop(product.id)
+            except Exception:
+                pass
 
     def failure(self, product: Product) -> None:
         LOGGER.info(f"Failure {product.id}, Go back to Q")
-        try:
-            self.pendings.pop(product.id)
-        except Exception:
-            pass
-        self.tree.insert(AvlNode(product))
+        with lock:
+            try:
+                self.pendings.pop(product.id)
+            except Exception:
+                pass
+            self.tree.insert(AvlNode(product))
 
     def eof(self) -> bool:
         return self.tree.get_size() == 0 and len(self.pendings) == 0
