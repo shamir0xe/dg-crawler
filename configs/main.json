@@ -3,16 +3,20 @@
 	"loading_timelimit": 99,
 	"urls_path": "outputs",
 	"base_url": "https://www.digikala.com",
-	"wait_xpath": "//div[@id='__next']//picture[1]/img[1]",
+	"wait_xpath": "//div[@id='__next']//picture[last()]/img[1]",
 	"imgs_xpath": "//div[@id='__next']//img[1]",
 	"dummy_url": "https://www.google.com",
 	"dummy_xpath": "//form[1]//textarea[1]",
 	"bad_strings": [
 		".svg",
-		"/statics/"
+		"/statics/",
+		".mov"
 	],
 	"base_image": {
 		"path": "./base.jpg",
 		"sample_cnt": 1000
+	},
+	"cm": {
+		"sleep": 0.2
 	}
 }

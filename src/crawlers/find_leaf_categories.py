@@ -7,57 +7,16 @@ from random import random
 from typing import List
 
 from pylib_0xe.file.file import File
-from src.actions.get_driver import GetDriver
 from src.helpers.config import Config
 from src.orchestrators.crawl_manager import CrawlManager
 from src.actions.cat_url_builder import CatUrlBuilder
 from src.orchestrators.send_request import SendRequest
 from src.models.category import Category
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("[FLC]")
 
 
 class FindLeafCategories:
-    @staticmethod
-    def fn(cat_manager: CrawlManager, instance: int) -> List[Category]:
-        result = []
-        # time.sleep(5/ * random())
-        if instance > 1:
-            time.sleep(instance)
-        LOGGER.info(f"Instanciate #{instance}")
-        while cat_manager.have_any():
-            cat = cat_manager.get_one()
-            if not cat:
-                time.sleep(0.5 * random())
-                continue
-            if cat_manager.eof():
-                break
-            url = CatUrlBuilder.build(cat)
-            data = SendRequest.send(url, instance)
-            if not data or not "data" in data:
-                continue
-            if (
-                "sub_categories_best_selling" not in data["data"]
-                or not data["data"]["sub_categories_best_selling"]
-            ):
-                result += [
-                    Category(
-                        id=data["data"]["category"]["id"],
-                        name=cat,
-                        url=url,
-                        page_cnt=data["data"]["pager"]["total_pages"],
-                    )
-                ]
-                LOGGER.info(f"LEAF! {cat}")
-            else:
-                LOGGER.info(f"NOT LEAF! {cat}")
-                sub_cats = data["data"]["sub_categories_best_selling"]
-                for sub_cat in sub_cats:
-                    cat_manager.add_one(sub_cat["code"])
-            cat_manager.resolve(cat)
-        LOGGER.info(f"Instance #{instance} Ended")
-        return result
-
     @staticmethod
     def find(cat: str) -> List[Category]:
         categories = []
@@ -82,3 +41,42 @@ class FindLeafCategories:
         )
         LOGGER.info("Done & Dusted ;)")
         return categories
+
+    @staticmethod
+    def fn(cat_manager: CrawlManager, instance: int) -> List[Category]:
+        result = []
+        sleep_time = Config.read("main.cm.sleep")
+        LOGGER.info(f"Instanciate #{instance}")
+        while not cat_manager.eof():
+            cat = cat_manager.get_one()
+            # LOGGER.info(f"{cat} is assigned to {instance}")
+            if not cat:
+                time.sleep(sleep_time * random())
+                continue
+            url = CatUrlBuilder.build(cat)
+            data = SendRequest.send(url, instance)
+            if not data or not "data" in data:
+                continue
+            if (
+                "sub_categories_best_selling" not in data["data"]
+                or not data["data"]["sub_categories_best_selling"]
+            ):
+                result += [
+                    Category(
+                        id=data["data"]["category"]["id"],
+                        name=cat,
+                        url=url,
+                        page_cnt=data["data"]["pager"]["total_pages"],
+                    )
+                ]
+                LOGGER.info(f"LEAF!")
+            else:
+                LOGGER.info(f"NOT LEAF!")
+                sub_cats = data["data"]["sub_categories_best_selling"]
+                # LOGGER.info("")
+                for sub_cat in sub_cats:
+                    # LOGGER.info(f"{cat}->{sub_cat['code']}")
+                    cat_manager.add_one(sub_cat["code"])
+            cat_manager.resolve(cat)
+        LOGGER.info(f"Instance #{instance} Ended")
+        return result

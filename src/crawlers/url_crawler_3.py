@@ -1,24 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from tqdm import tqdm
-import time
-from random import random
 import logging
-from typing import List, Tuple
+from typing import List, Set
 
-from selenium.webdriver.chrome.webdriver import WebDriver
 from src.models.category import Category
 from src.actions.modify_url_per_page import ModifyUrlPerPage
 from src.orchestrators.send_request import SendRequest
 from src.models.product import Product
 from src.helpers.config import Config
-from src.actions.get_driver import GetDriver
-from src.actions.get_agent import GetAgent
 from src.crawlers.base_crawler import BaseCrawler
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from pylib_0xe.json.json_helper import JsonHelper
 
 
@@ -35,7 +25,7 @@ class UrlCrawler3(BaseCrawler):
         products = []
         thread_cnt = Config.read_env("thread_cnt")
         participants = Config.read_env("participants")
-        with ThreadPoolExecutor(max_workers=thread_cnt) as executor:
+        with ThreadPoolExecutor() as executor:
             futures = []
             for i in range(thread_cnt):
                 futures += [
@@ -54,7 +44,6 @@ class UrlCrawler3(BaseCrawler):
                 except Exception:
                     LOGGER.info(f"[THREAD #{i:01d}] Cannot get the result")
         products = self.make_uniques(products)
-        # LOGGER.info(f"product total length = {len(products)}")
         return products
 
     def _products_page(
@@ -103,21 +92,12 @@ class UrlCrawler3(BaseCrawler):
                     if not products:
                         LOGGER.info(f"[#{thread_number}] EMPTY!")
                     for product in products:
-                        id = 0
-                        url = ""
-                        name = ""
                         try:
                             id = product["id"]
-                        except:
-                            pass
-                        try:
                             url = product["url"]["uri"]
-                        except:
-                            pass
-                        try:
                             name = product["title_fa"]
                         except:
-                            pass
+                            continue
                         result += [
                             Product(
                                 id=str(id),
@@ -125,15 +105,16 @@ class UrlCrawler3(BaseCrawler):
                                 name=name,
                                 page=page,
                                 category_id=self.category.id,
-                                images=[],
                             )
                         ]
         return result
 
     def make_uniques(self, products: List[Product]):
         products = sorted(products)
+        product_set: Set[str] = set()
         unique = []
         for product in products:
-            if len(unique) == 0 or not (product == unique[-1]):
+            if product.id not in product_set:
                 unique += [product]
+                product_set.add(product.id)
         return unique

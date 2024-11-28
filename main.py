@@ -1,22 +1,19 @@
 import logging
-
-from concurrent.futures import ThreadPoolExecutor, wait
+from src.crawlers.crawl_all_images import CrawlAllImages
 from src.orchestrators.send_request import SendRequest
 from src.actions.initialize import Initialize
-from src.orchestrators.product_manager import ProductManager
 from src.actions.save_product_urls import SaveProductUrls
 from src.orchestrators.crawl_all_products import CrawlAllProducts
 from src.helpers.config import Config
-from src.orchestrators.chunk_image_fetcher import ChunkImageFetcher
 from pylib_0xe.argument.argument_parser import ArgumentParser
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(name)5s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("main")
 
 
 def main():
@@ -37,12 +34,21 @@ def main():
         raise Exception("Option is not valid")
     player_number = int(player_number)
     assert 1 <= player_number <= Config.read_env("participants")
+
+    #####
+    if ArgumentParser.is_option("img"):
+        if not ArgumentParser.is_option("i"):
+            raise Exception("Provide instance number")
+    #####
+
     products = CrawlAllProducts(player_number=player_number).crawl()
+    for product in products:
+        LOGGER.info(f"[#{product.page:05d} -- {product.name} -- {product.category_id}]")
 
     # 1.5
-    product_urls = []
+    product_list = []
     for product in products:
-        product_urls += [
+        product_list += [
             {
                 "id": product.id,
                 "name": product.name,
@@ -51,21 +57,10 @@ def main():
                 "category_id": product.category_id,
             }
         ]
-    SaveProductUrls.save(product_urls)
+    SaveProductUrls.save(product_list)
 
     # 2
-    # shuffle(products)
-    thread_count = Config.read_env("thread_cnt")
-    # product_chunks = ChunkProducts.chunk(products=products, chunk_count=thread_count)
-    pm = ProductManager(set(products))
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for i in range(thread_count):
-            futures += [
-                executor.submit(ChunkImageFetcher.fetch, pm, (i % thread_count) + 1)
-            ]
-        wait(futures)
-        LOGGER.info("Done & Dusted ;)")
+    CrawlAllImages(products).crawl()
 
 
 def url_builder(page: int, sort: int) -> str:
