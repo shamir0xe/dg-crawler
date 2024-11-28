@@ -4,6 +4,8 @@ from tqdm import tqdm
 from dataclasses import dataclass
 from typing import List, Set
 import logging
+from src.orchestrators.product_manager import ProductManager
+from src.models.category import Category
 from src.crawlers.find_leaf_categories import FindLeafCategories
 from src.crawlers.url_crawler_3 import UrlCrawler3
 from src.helpers.config import Config
@@ -18,17 +20,15 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class CrawlAllProducts(BaseCrawler):
+    leaf_categories: List[Category]
     player_number: int
+    executor: ThreadPoolExecutor
 
-    def crawl(self) -> List[Product]:
-        main_category = Config.read_env("main_category")
-        leaf_categories = FindLeafCategories.find(main_category)
-        shuffle(leaf_categories)
-        products = []
-        for category in tqdm(leaf_categories):
-            products += UrlCrawler3(category, self.player_number).crawl()
-        products = sorted(products)
-        return products
+    def crawl(self, pm: ProductManager) -> None:
+        for category in tqdm(self.leaf_categories):
+            UrlCrawler3(
+                category, self.player_number, pm=pm, executor=self.executor
+            ).crawl()
 
     def crawl_old(self) -> List[Product]:
         urls = Config.read_env("urls")

@@ -1,8 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
 import logging
-from typing import List, Set
 
+from src.orchestrators.product_manager import ProductManager
 from src.models.category import Category
 from src.actions.modify_url_per_page import ModifyUrlPerPage
 from src.orchestrators.send_request import SendRequest
@@ -19,37 +19,42 @@ LOGGER = logging.getLogger(__name__)
 class UrlCrawler3(BaseCrawler):
     category: Category
     player_number: int
+    pm: ProductManager
+    executor: ThreadPoolExecutor
 
-    def crawl(self) -> List[Product]:
+    def crawl(self) -> None:
         self._base_time = Config.read_env("times.base")
         products = []
         thread_cnt = Config.read_env("thread_cnt")
         participants = Config.read_env("participants")
-        with ThreadPoolExecutor() as executor:
-            futures = []
-            for i in range(thread_cnt):
-                futures += [
-                    executor.submit(
-                        self._products_page,
-                        self.player_number,
-                        participants,
-                        i,
-                        thread_cnt,
-                    )
-                ]
-            for i, future in enumerate(futures):
-                try:
-                    # LOGGER.info(f"[THREAD #{i:01d}] Merge the results")
-                    products += future.result()
-                except Exception:
-                    LOGGER.info(f"[THREAD #{i:01d}] Cannot get the result")
-        products = self.make_uniques(products)
-        return products
+        # with ThreadPoolExecutor() as executor:
+
+        futures = []
+        for i in range(thread_cnt):
+            futures += [
+                self.executor.submit(
+                    self._products_page,
+                    self.player_number,
+                    participants,
+                    i,
+                    thread_cnt,
+                )
+            ]
+        wait(futures)
+
+        # for i, future in enumerate(futures):
+        #     try:
+        #         # LOGGER.info(f"[THREAD #{i:01d}] Merge the results")
+        #         products += future.result()
+        #     except Exception:
+        #         LOGGER.info(f"[THREAD #{i:01d}] Cannot get the result")
+        # products = self.make_uniques(products)
+        # return products
 
     def _products_page(
         self, start_idx: int, participants: int, thread_number: int, thread_cnt: int
-    ) -> List[Product]:
-        result: List[Product] = []
+    ) -> None:
+        # result: List[Product] = []
         pages = []
         cur_idx = start_idx
         max_search_page = Config.read_env("max_search_page")
@@ -61,8 +66,9 @@ class UrlCrawler3(BaseCrawler):
         best_sort_number = Config.read_env("best_sort_number")
         max_res = Config.read_env("max_res_per_cat")
 
+        cnt = 0
         for i, page in enumerate(pages):
-            if len(result) >= max_res:
+            if cnt >= max_res:
                 break
             if i % thread_cnt == thread_number:
                 # Do Crawl
@@ -98,23 +104,23 @@ class UrlCrawler3(BaseCrawler):
                             name = product["title_fa"]
                         except:
                             continue
-                        result += [
+                        cnt += 1
+                        self.pm.add_one(
                             Product(
-                                id=str(id),
+                                id=int(id),
                                 url=url,
                                 name=name,
                                 page=page,
                                 category_id=self.category.id,
                             )
-                        ]
-        return result
+                        )
 
-    def make_uniques(self, products: List[Product]):
-        products = sorted(products)
-        product_set: Set[str] = set()
-        unique = []
-        for product in products:
-            if product.id not in product_set:
-                unique += [product]
-                product_set.add(product.id)
-        return unique
+    # def make_uniques(self, products: List[Product]):
+    #     products = sorted(products)
+    #     product_set: Set[str] = set()
+    #     unique = []
+    #     for product in products:
+    #         if product.id not in product_set:
+    #             unique += [product]
+    #             product_set.add(product.id)
+    #     return unique

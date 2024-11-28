@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
+from random import randint
 from typing import List
 from PIL.Image import Image
-from ulid import ULID
 
 
 @dataclass
@@ -10,7 +10,7 @@ class Product:
     url: str
     page: int
     category_id: int
-    id: str = field(default_factory=ULID().generate)
+    id: int = field(default=randint(int(1e6), int(1e10)))
     images: List[Image] = field(default_factory=list)
 
     def __lt__(self, obj) -> bool:
@@ -24,7 +24,7 @@ class Product:
         return False
 
     def __repr__(self) -> str:
-        return self.id
+        return str(self.id)
 
     def __hash__(self) -> int:
         return hash(self.url)

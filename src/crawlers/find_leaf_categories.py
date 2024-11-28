@@ -44,11 +44,16 @@ class FindLeafCategories:
 
     @staticmethod
     def fn(cat_manager: CrawlManager, instance: int) -> List[Category]:
+        env = Config.read_env("env")
         result = []
         sleep_time = Config.read("main.cm.sleep")
         time.sleep(sleep_time * random())
         LOGGER.info(f"Instanciate #{instance}")
+        cnt = 0
         while not cat_manager.eof():
+            if env == "debug" and cnt > 3:
+                break
+
             cat = cat_manager.get_one()
             LOGGER.info(f"{cat} is assigned to {instance}")
             if not cat:
@@ -65,6 +70,7 @@ class FindLeafCategories:
                     "sub_categories_best_selling" not in data["data"]
                     or not data["data"]["sub_categories_best_selling"]
                 ):
+                    cnt += 1
                     result += [
                         Category(
                             id=data["data"]["category"]["id"],

@@ -20,7 +20,7 @@ class ChunkImageFetcher:
         sleep_time = Config.read("main.cm.sleep")
         image_filter = ImageFilterFactory().create()
         time.sleep(sleep_time * random())
-        while not product_manager.eof():
+        while True:
             product = product_manager.get_one()
             if not product:
                 time.sleep(sleep_time * random())
