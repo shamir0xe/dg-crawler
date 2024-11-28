@@ -9,6 +9,7 @@ lock = threading.Lock()
 LOGGER = logging.getLogger("[CM]")
 
 T = TypeVar("T")
+MAX_RETRY = 10
 
 
 @dataclass
@@ -21,7 +22,7 @@ class CrawlManager(Generic[T]):
 
     whole: Deque[T] = field(default_factory=deque)
     pendings: Dict[str, T] = field(default_factory=dict)
-    history: Set[str] = field(default_factory=set)
+    history: Dict[str, int] = field(default_factory=dict)
 
     def get_one(self) -> Optional[T]:
         with lock:
@@ -33,10 +34,11 @@ class CrawlManager(Generic[T]):
                 return None
 
     def add_one(self, obj: T) -> None:
-        if str(obj) in self.history:
-            return
-        self.history.add(str(obj))
-        self.whole.append(obj)
+        with lock:
+            if str(obj) in self.history:
+                return
+            self.history[str(obj)] = 1
+            self.whole.append(obj)
 
     def have_any(self) -> bool:
         return len(self.whole) > 0
@@ -47,9 +49,23 @@ class CrawlManager(Generic[T]):
 
     def failure(self, obj: T) -> None:
         LOGGER.info(f"Failure {str(obj)}, Go back to Q")
+        self.pendings.pop(str(obj))
+        self.whole.append(obj)
+
+    def retry(self, obj: T) -> None:
         with lock:
-            self.pendings.pop(str(obj))
-            self.whole.append(obj)
+            if str(obj) not in self.history:
+                return
+            self.history[str(obj)] += 1
+            if self.history[str(obj)] > MAX_RETRY:
+                LOGGER.info(f"Max retry occures for {obj}")
+                self.pendings.pop(str(obj))
+            else:
+                self.failure(obj)
 
     def eof(self) -> bool:
-        return len(self.whole) == 0 and len(self.pendings) == 0
+        # LOGGER.info(f"{len(self.whole)}  {len(self.pendings)}")
+        # if len(self.pendings) == 1:
+        #     LOGGER.info(self.pendings.keys())
+        with lock:
+            return len(self.whole) == 0 and len(self.pendings) == 0

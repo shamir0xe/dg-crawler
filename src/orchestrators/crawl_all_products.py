@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from random import shuffle
 from tqdm import tqdm
 from dataclasses import dataclass
 from typing import List, Set
@@ -22,6 +23,7 @@ class CrawlAllProducts(BaseCrawler):
     def crawl(self) -> List[Product]:
         main_category = Config.read_env("main_category")
         leaf_categories = FindLeafCategories.find(main_category)
+        shuffle(leaf_categories)
         products = []
         for category in tqdm(leaf_categories):
             products += UrlCrawler3(category, self.player_number).crawl()

@@ -70,7 +70,8 @@ def url_builder(page: int, sort: int) -> str:
     # url = "https://api.digikala.com/v1/categories/religious-printed-book/search/"
     # url = "https://api.digikala.com/v1/categories/medical-Insoles/search/"
     # url = "https://api.digikala.com/v1/categories/punching-bag/search/"
-    url = "https://api.digikala.com/v1/categories/bowl/search/"
+    # url = "https://api.digikala.com/v1/categories/bowl/search/"
+    url = "https://api.digikala.com/v1/categories/electric-massager/search/"
     url += f"?sort={sort}"
     url += f"&page={page}"
     return url
@@ -96,7 +97,8 @@ def examine():
     # target_id = 8625255
     # target_id = 4463244
     # target_id = 17168537
-    target_id = 16689506
+    # target_id = 16689506
+    target_id = 13181766
     for st in sort_set:
         found = False
         for page in tqdm(range(0, 100)):
@@ -116,5 +118,5 @@ def examine():
 
 
 if __name__ == "__main__":
-    # examine()
-    main()
+    examine()
+    # main()

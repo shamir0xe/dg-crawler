@@ -46,37 +46,47 @@ class FindLeafCategories:
     def fn(cat_manager: CrawlManager, instance: int) -> List[Category]:
         result = []
         sleep_time = Config.read("main.cm.sleep")
+        time.sleep(sleep_time * random())
         LOGGER.info(f"Instanciate #{instance}")
         while not cat_manager.eof():
             cat = cat_manager.get_one()
-            # LOGGER.info(f"{cat} is assigned to {instance}")
+            LOGGER.info(f"{cat} is assigned to {instance}")
             if not cat:
                 time.sleep(sleep_time * random())
                 continue
             url = CatUrlBuilder.build(cat)
             data = SendRequest.send(url, instance)
             if not data or not "data" in data:
+                cat_manager.retry(cat)
+                time.sleep(sleep_time * random())
                 continue
-            if (
-                "sub_categories_best_selling" not in data["data"]
-                or not data["data"]["sub_categories_best_selling"]
-            ):
-                result += [
-                    Category(
-                        id=data["data"]["category"]["id"],
-                        name=cat,
-                        url=url,
-                        page_cnt=data["data"]["pager"]["total_pages"],
-                    )
-                ]
-                LOGGER.info(f"LEAF!")
-            else:
-                LOGGER.info(f"NOT LEAF!")
-                sub_cats = data["data"]["sub_categories_best_selling"]
-                # LOGGER.info("")
-                for sub_cat in sub_cats:
-                    # LOGGER.info(f"{cat}->{sub_cat['code']}")
-                    cat_manager.add_one(sub_cat["code"])
+            try:
+                if (
+                    "sub_categories_best_selling" not in data["data"]
+                    or not data["data"]["sub_categories_best_selling"]
+                ):
+                    result += [
+                        Category(
+                            id=data["data"]["category"]["id"],
+                            name=cat,
+                            url=url,
+                            page_cnt=data["data"]["pager"]["total_pages"],
+                        )
+                    ]
+                    LOGGER.info(f"LEAF!")
+                else:
+                    LOGGER.info(f"NOT LEAF!")
+                    sub_cats = data["data"]["sub_categories_best_selling"]
+                    # LOGGER.info("")
+                    for sub_cat in sub_cats:
+                        # LOGGER.info(f"{cat}->{sub_cat['code']}")
+                        cat_manager.add_one(sub_cat["code"])
+            except Exception:
+                pass
             cat_manager.resolve(cat)
         LOGGER.info(f"Instance #{instance} Ended")
         return result
+
+    @staticmethod
+    def is_char(char: str) -> bool:
+        return ord("a") <= ord(char) <= ord("z")
