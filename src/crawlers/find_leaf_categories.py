@@ -22,7 +22,8 @@ class FindLeafCategories:
         categories = []
         cat_manager = CrawlManager[str]()
         cat_manager.add_one(cat)
-        thread_count = Config.read_env("thread_cnt")
+        # thread_count = Config.read_env("thread_cnt")
+        thread_count = 8
         with ThreadPoolExecutor() as executor:
             futures = []
             for i in range(thread_count):

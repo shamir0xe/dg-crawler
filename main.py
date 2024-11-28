@@ -50,14 +50,15 @@ def main():
     shuffle(leaf_categories)
 
     with ThreadPoolExecutor() as executor:
-        pm = ProductManager()
-        futures = AddImageCrawlers(executor=executor, pm=pm).listen()
-        CrawlAllProducts(
-            leaf_categories=leaf_categories,
-            player_number=player_number,
-            executor=executor,
-        ).crawl(pm)
-        wait(futures)
+        with open("./outputs/product-urls.txt", "a+") as f:
+            pm = ProductManager(log=f)
+            futures = AddImageCrawlers(executor=executor, pm=pm).listen()
+            CrawlAllProducts(
+                leaf_categories=leaf_categories,
+                player_number=player_number,
+                executor=executor,
+            ).crawl(pm)
+            wait(futures)
     # for product in products:
     #     LOGGER.info(f"[#{product.page:05d} -- {product.name} -- {product.category_id}]")
 

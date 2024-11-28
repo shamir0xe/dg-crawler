@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+import json
+from typing import Any, Dict, Optional
 import threading
 import logging
 
@@ -14,6 +15,7 @@ LOGGER = logging.getLogger(__name__ + "[PM]")
 
 @dataclass
 class ProductManager:
+    log: Any
     tree: AvlTree[Product, int] = field(
         default=AvlTree[Product, int](
             lambda node: node.data.page * 100000000 + int(node.data.id)
@@ -27,6 +29,17 @@ class ProductManager:
             if v:
                 return
             self.tree.insert(AvlNode(p))
+            self.log.write(
+                json.dumps(
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "url": p.url,
+                        "page": p.page,
+                        "category_id": p.category_id,
+                    }
+                )
+            )
 
     def get_one(self) -> Optional[Product]:
         with lock:
@@ -46,11 +59,17 @@ class ProductManager:
 
     def resolve(self, product: Product) -> None:
         LOGGER.info(f"Success #{product.id} // P#{product.page}")
-        self.pendings.pop(product.id)
+        try:
+            self.pendings.pop(product.id)
+        except Exception:
+            pass
 
     def failure(self, product: Product) -> None:
         LOGGER.info(f"Failure {product.id}, Go back to Q")
-        self.pendings.pop(product.id)
+        try:
+            self.pendings.pop(product.id)
+        except Exception:
+            pass
         self.tree.insert(AvlNode(product))
 
     def eof(self) -> bool:
