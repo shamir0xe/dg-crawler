@@ -3,6 +3,9 @@ import time
 from random import random
 from typing import List
 
+from actions.image_convertor import ImageConvertor
+from src.factories.image_generator import ImageGenerator
+from src.orchestrators.process_image import ProcessImage
 from src.helpers.config import Config
 from src.factories.image_filter_factory import ImageFilterFactory
 from src.actions.get_driver import GetDriver
@@ -15,8 +18,11 @@ LOGGER = logging.getLogger(__name__)
 
 class ChunkImageFetcher:
     @staticmethod
-    def fetch(product_manager: ProductManager, instance: int) -> None:
+    def fetch(
+        product_manager: ProductManager, img_gen: ImageGenerator, instance: int
+    ) -> None:
         LOGGER.info(f"Instanciate #{instance}")
+        img_gen_cfg = Config.read_env("image_gen")
         sleep_time = Config.read("main.cm.sleep")
         image_filter = ImageFilterFactory().create()
         time.sleep(sleep_time * random())
@@ -35,9 +41,23 @@ class ChunkImageFetcher:
                 GetDriver().revoke(instance)
                 continue
             try:
+                # Convert images to RGB
+                for i, image in enumerate(product.images):
+                    try:
+                        image = ImageConvertor(image).convert("RGB")
+                    except Exception:
+                        continue
+                    if image:
+                        product.images[i] = image
+
                 # Filter the images based on the provided sample image
                 product.images = image_filter.filter(obj=product)
                 if product.images:
+                    # Crop the image and add it to img_gen
+                    for image in product.images:
+                        cropped_img = ProcessImage(image, cfg=img_gen_cfg).process()
+                        if cropped_img:
+                            img_gen.add_one(img=cropped_img, product=product)
                     # Save the filtered images if exists any
                     SaveProductImages(product=product).save()
             except Exception:

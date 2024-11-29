@@ -10,7 +10,7 @@ from pylib_0xe.file.file import File
 LOGGER = logging.getLogger(__name__)
 
 
-class TestFilter:
+class _TestFilter:
     def test_filter(self):
         images_dir = "/home/shamir0xe/Downloads/Telegram Desktop/#_(/#:("
         product = Product(

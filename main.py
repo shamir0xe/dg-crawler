@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor, wait
 import logging
 from random import shuffle
+from src.factories.image_generator import ImageGenerator
 from src.crawlers.find_leaf_categories import FindLeafCategories
 from src.orchestrators.add_image_crawlers import AddImageCrawlers
 from src.orchestrators.product_manager import ProductManager
@@ -52,7 +53,8 @@ def main():
     with ThreadPoolExecutor() as executor:
         with open("./outputs/product-urls.txt", "a+") as f:
             pm = ProductManager(log=f)
-            futures = AddImageCrawlers(executor=executor, pm=pm).listen()
+            img_gen = ImageGenerator()
+            futures = AddImageCrawlers(executor=executor, pm=pm, img_gen=img_gen).listen()
             CrawlAllProducts(
                 leaf_categories=leaf_categories,
                 player_number=player_number,

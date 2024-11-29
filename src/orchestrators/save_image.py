@@ -14,7 +14,6 @@ class SaveImage:
 
     def save(self, name: str) -> None:
         output_dir = Config.read("main.output_dir")
-        self.image = self.image.convert("RGB")
         name = re.sub(BAD_CHARS, "", name)
         self.image.save(output_dir.format(name, "jpg"))
         self.image.close()
