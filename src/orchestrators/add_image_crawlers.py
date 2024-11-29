@@ -15,7 +15,8 @@ class AddImageCrawlers:
     def listen(self) -> List[Future]:
         # thread_count = Config.read_env("thread_cnt")
         futures = []
-        thread_cnt = Config.read_env("thread_cnt")
-        for i in range(thread_cnt, 8):
+        thread_cnt = min(4, Config.read_env("thread_cnt"))
+        max_threads = Config.read_env("thread_cnt")
+        for i in range(thread_cnt, max_threads):
             futures += [self.executor.submit(ChunkImageFetcher.fetch, self.pm, i + 1)]
         return futures

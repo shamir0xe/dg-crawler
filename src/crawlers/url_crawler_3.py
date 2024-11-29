@@ -24,7 +24,7 @@ class UrlCrawler3(BaseCrawler):
 
     def crawl(self) -> None:
         self._base_time = Config.read_env("times.base")
-        thread_cnt = Config.read_env("thread_cnt")
+        thread_cnt = min(4, Config.read_env("thread_cnt"))
         participants = Config.read_env("participants")
         # with ThreadPoolExecutor() as executor:
 
