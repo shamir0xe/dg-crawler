@@ -25,7 +25,7 @@ class Cats:
                         name=cat_data["code"],
                         fa_name=cat_data["title_fa"],
                         page_cnt=(cat_data["products_count"] - 1) // page_size,
-                        url="",
+                        url=f"https://sirius.digikala.com/v1/category/{int(cat_data["id"])}/",
                     )
                 )
             except Exception:

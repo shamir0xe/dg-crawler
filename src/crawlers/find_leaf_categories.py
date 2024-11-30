@@ -25,7 +25,14 @@ class FindLeafCategories:
         if not category:
             raise Exception("Category not found")
         ids = CatGraph().g.get_leaves(category.id)
-        return CategoryFinder.read_ids(ids)
+        categories = CategoryFinder.read_ids(ids)
+        # Save the output
+        File.write_file(
+            os.path.join(Config.read("main.urls_path"), "categories.json"),
+            json.dumps({cat.id: cat.model_dump() for cat in categories}),
+        )
+        LOGGER.info("Done & Dusted ;)")
+        return categories
 
     @staticmethod
     def find(cat: str) -> List[Category]:
