@@ -29,29 +29,22 @@ class CrawlImages(BaseCrawler):
     instance: int
 
     def crawl(self) -> List[Image.Image]:
-        # target_url = f"https://api.digikala.com/v2/product/{self.product.id}/"
-        target_url = self.product.url
-        product_data = SendRequest.send(target_url, self.instance)
-        if not product_data:
-            LOGGER.info("EMPTY")
+        urls_v1 = self._v1_urls()
+        urls_v2 = self._v2_urls()
+
+        diffs = self._diff(urls_v1, urls_v2)
+        if not diffs:
             return []
 
-        urls = []
-        main_url = JsonHelper.selector_get_value(
-            product_data, "data.product.images.main"
-        )
-        if main_url:
-            urls += [main_url]
-        list_urls = JsonHelper.selector_get_value(
-            product_data, "data.product.images.image_list"
-        )
-        if list_urls:
-            urls += list_urls
+        if len(diffs) > 1:
+            LOGGER.info("SPECIAL ONE")
+            self.product.name = f"FFFFFFFF-{self.product.name}"
+
         self.user_agent = GetAgent.get()
         self.image_query_timeout = Config.read_env("times.short_delay")
         # LOGGER.info(urls)
         try:
-            for url_ in urls:
+            for url_ in diffs:
                 image = self._retry_image(url_)
                 if image:
                     self.product.images += [image]
@@ -84,3 +77,61 @@ class CrawlImages(BaseCrawler):
             pass
         LOGGER.info(f"[{self.instance}] Retrying")
         return self._retry_image(url, count - 1)
+
+    def _v1_urls(self) -> List[str]:
+        target_url = self.product.url
+        product_data = SendRequest.send(target_url, self.instance)
+        if not product_data:
+            LOGGER.info("EMPTY")
+            return []
+
+        urls = []
+        main_url = JsonHelper.selector_get_value(
+            product_data, "data.product.images.main"
+        )
+        if main_url:
+            urls += [main_url]
+        list_urls = JsonHelper.selector_get_value(
+            product_data, "data.product.images.image_list"
+        )
+        if list_urls:
+            urls += list_urls
+        urls = sorted(urls)
+        return urls
+
+    def _v2_urls(self) -> List[str]:
+        target_url = f"https://api.digikala.com/v2/product/{self.product.id}/"
+        product_data = SendRequest.send(target_url, self.instance)
+        if not product_data:
+            LOGGER.info("EMPTY")
+            return []
+        urls = [
+            JsonHelper.selector_get_value(product_data, "data.product.images.main.url")
+        ]
+        urls += JsonHelper.selector_get_value(
+            product_data, "data.product.images.list.*.url"
+        )
+        result = []
+        for url_ in urls:
+            if len(url_) > 0:
+                result += [url_[0]]
+        result = sorted(result)
+        return result
+
+    def _diff(self, urls_1: List[str], urls_2: List[str]) -> List[str]:
+        m1 = [self._remove(t) for t in urls_1]
+        m2 = [self._remove(t) for t in urls_2]
+        diff = (set(m1) - set(m2)) | (set(m2) - set(m1))
+        return list(diff)
+
+    def _remove(self, url: str) -> str:
+        patterns = ["/resize", "/quality"]
+        idx = int(1e9)
+        for pattern in patterns:
+            i = url.find(pattern)
+            if i == -1:
+                continue
+            idx = min(idx, i)
+        if idx < 1e5:
+            url = url[:idx]
+        return url

@@ -27,8 +27,8 @@ class ChunkImageFetcher:
                 continue
             try:
                 CrawlImages(product=product, instance=instance).crawl()
-                if not product.images:
-                    raise Exception()
+                # if not product.images:
+                #     raise Exception()
                 product_manager.resolve(product)
             except Exception:
                 product_manager.failure(product)
