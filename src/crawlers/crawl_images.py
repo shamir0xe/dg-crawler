@@ -35,20 +35,26 @@ class CrawlImages(BaseCrawler):
         if not product_data:
             LOGGER.info("EMPTY")
             return []
-        urls = [JsonHelper.selector_get_value(product_data, "data.product.images.main")]
-        temp = JsonHelper.selector_get_value(
+
+        urls = []
+        main_url = JsonHelper.selector_get_value(
+            product_data, "data.product.images.main"
+        )
+        if main_url:
+            urls += [main_url]
+        list_urls = JsonHelper.selector_get_value(
             product_data, "data.product.images.image_list"
         )
-        if temp:
-            urls += temp
+        if list_urls:
+            urls += list_urls
         self.user_agent = GetAgent.get()
         self.image_query_timeout = Config.read_env("times.short_delay")
+        # LOGGER.info(urls)
         try:
             for url_ in urls:
-                if len(url_) > 0:
-                    image = self._retry_image(url_[0])
-                    if image:
-                        self.product.images += [image]
+                image = self._retry_image(url_)
+                if image:
+                    self.product.images += [image]
         except Exception as e:
             LOGGER.info(f"Exception Occured: {str(e)[:22]}")
         return self.product.images
