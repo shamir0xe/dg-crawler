@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
 import logging
 
+from src.actions.gen_product_url import GenProductUrl
 from src.orchestrators.product_manager import ProductManager
 from src.models.category import Category
 from src.actions.modify_url_per_page import ModifyUrlPerPage
@@ -75,13 +76,15 @@ class UrlCrawler3(BaseCrawler):
                 if i < base_search_cnt:
                     for sort_number in base_sort_numbers:
                         url = ModifyUrlPerPage.modify(
-                            url=self.category.url, page=page, sort_number=sort_number
+                            category_id=self.category.id,
+                            page=page,
+                            sort_number=sort_number,
                         )
                         urls += [url]
                 else:
                     urls += [
                         ModifyUrlPerPage.modify(
-                            url=self.category.url,
+                            category_id=self.category.id,
                             page=page,
                             sort_number=best_sort_number,
                         )
@@ -99,11 +102,12 @@ class UrlCrawler3(BaseCrawler):
                     for product in products:
                         try:
                             id = product["id"]
-                            url = product["url"]["uri"]
+                            # url = product["url"]["uri"]
                             name = product["title_fa"]
                         except:
                             continue
                         cnt += 1
+                        url = GenProductUrl.gen(id)
                         self.pm.add_one(
                             Product(
                                 id=int(id),

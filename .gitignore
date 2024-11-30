@@ -5,6 +5,7 @@ __pycache__/
 venv
 outputs*
 env.json
+_dictionary.json
 
 # base image
 base.jpg

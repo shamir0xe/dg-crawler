@@ -29,17 +29,18 @@ class CrawlImages(BaseCrawler):
     instance: int
 
     def crawl(self) -> List[Image.Image]:
-        target_url = f"https://api.digikala.com/v2/product/{self.product.id}/"
+        # target_url = f"https://api.digikala.com/v2/product/{self.product.id}/"
+        target_url = self.product.url
         product_data = SendRequest.send(target_url, self.instance)
         if not product_data:
             LOGGER.info("EMPTY")
             return []
-        urls = [
-            JsonHelper.selector_get_value(product_data, "data.product.images.main.url")
-        ]
-        urls += JsonHelper.selector_get_value(
-            product_data, "data.product.images.list.*.url"
+        urls = [JsonHelper.selector_get_value(product_data, "data.product.images.main")]
+        temp = JsonHelper.selector_get_value(
+            product_data, "data.product.images.image_list"
         )
+        if temp:
+            urls += temp
         self.user_agent = GetAgent.get()
         self.image_query_timeout = Config.read_env("times.short_delay")
         try:
@@ -77,4 +78,3 @@ class CrawlImages(BaseCrawler):
             pass
         LOGGER.info(f"[{self.instance}] Retrying")
         return self._retry_image(url, count - 1)
-
