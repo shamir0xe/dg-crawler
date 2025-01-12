@@ -29,7 +29,6 @@ def main():
         3) Run YOLO on each image, and tag it if there contains
         an suspicious text-box
     """
-    Initialize()
 
     # 1
     if not ArgumentParser.is_option("n"):
@@ -46,8 +45,11 @@ def main():
             raise Exception("Provide instance number")
     #####
 
+    #Init Step
+    Initialize()
+
     main_category = Config.read_env("main_category")
-    leaf_categories = FindLeafCategories.find(main_category)
+    leaf_categories = FindLeafCategories.find_by_graph(main_category)
     shuffle(leaf_categories)
 
     with ThreadPoolExecutor() as executor:

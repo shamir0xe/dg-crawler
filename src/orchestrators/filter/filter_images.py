@@ -25,12 +25,16 @@ class FilterImages(BaseFilter):
         self.sample_values = [
             self.sample_image.getpixel(self.sample_points[i]) for i in range(self.n)
         ]
+        self.discarded = []
 
     def filter(self, obj: Product) -> List[Image.Image]:
+        self.discarded = []
         result = []
         for image in obj.images:
             if self._match(image):
                 result += [image]
+            else:
+                self.discarded += [image]
         return result
 
     def _match(self, image: Image.Image) -> bool:

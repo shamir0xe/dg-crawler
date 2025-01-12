@@ -26,7 +26,7 @@ class SendRequest:
     @staticmethod
     def send(url: str, instance: int = 2) -> Optional[Dict]:
         retry_count = Config.read_env("retry_count")
-        retry_bak = retry_count
+        # retry_bak = retry_count
         base_time = Config.read_env("times.base")
         send_req = SendRequest(instance)
         while retry_count > 0:
@@ -35,7 +35,7 @@ class SendRequest:
             except Exception:
                 pass
             retry_count -= 1
-            time.sleep(base_time * (retry_bak - retry_count) + base_time * random())
+            time.sleep(base_time + base_time * random())
 
         return None
 

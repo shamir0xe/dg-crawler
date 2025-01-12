@@ -18,5 +18,9 @@
 	},
 	"cm": {
 		"sleep": 0.2
+	},
+	"page_size": 20,
+	"urls": {
+		"dictionary": "https://sirius.digikala.com/v1/dictionaries/?types%5B0%5D=sort_options&types%5B1%5D=guide_pages&types%5B2%5D=category_tree&types%5B3%5D=categories&types%5B4%5D=colors&types%5B5%5D=cities&types%5B6%5D=states&types%5B7%5D=districts&types%5B8%5D=features&types%5B9%5D=return_reasons&types%5B10%5D=static_url&types%5B11%5D=image_urls&types%5B12%5D=drop_off_addresses&types%5B13%5D=digipay_banks&types%5B14%5D=superapp_services&hashes%5B0%5D=&hashes%5B1%5D=&hashes%5B2%5D=&hashes%5B3%5D=&hashes%5B4%5D=&hashes%5B5%5D=&hashes%5B6%5D=&hashes%5B7%5D=&hashes%5B8%5D=&hashes%5B9%5D=&hashes%5B10%5D=&hashes%5B11%5D=&hashes%5B12%5D=&hashes%5B13%5D=&hashes%5B14%5D="
 	}
 }

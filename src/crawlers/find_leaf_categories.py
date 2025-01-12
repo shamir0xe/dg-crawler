@@ -7,6 +7,8 @@ from random import random
 from typing import List
 
 from pylib_0xe.file.file import File
+from src.facades.cat_graph import CatGraph
+from src.finders.category_finder import CategoryFinder
 from src.helpers.config import Config
 from src.orchestrators.crawl_manager import CrawlManager
 from src.actions.cat_url_builder import CatUrlBuilder
@@ -17,6 +19,21 @@ LOGGER = logging.getLogger("[FLC]")
 
 
 class FindLeafCategories:
+    @staticmethod
+    def find_by_graph(cat: str) -> List[Category]:
+        category = CategoryFinder.by_name(cat)
+        if not category:
+            raise Exception("Category not found")
+        ids = CatGraph().g.get_leaves(category.id)
+        categories = CategoryFinder.read_ids(ids)
+        # Save the output
+        File.write_file(
+            os.path.join(Config.read("main.urls_path"), "categories.json"),
+            json.dumps({cat.id: cat.model_dump() for cat in categories}),
+        )
+        LOGGER.info("Done & Dusted ;)")
+        return categories
+
     @staticmethod
     def find(cat: str) -> List[Category]:
         categories = []
@@ -78,6 +95,7 @@ class FindLeafCategories:
                             name=cat,
                             url=url,
                             page_cnt=data["data"]["pager"]["total_pages"],
+                            fa_name="",
                         )
                     ]
                     LOGGER.info(f"LEAF!")
